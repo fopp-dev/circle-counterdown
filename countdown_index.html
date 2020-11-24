@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+	<link rel="stylesheet" href="./css/countdown.css">
+	<link rel="stylesheet" href="./lib/bootstrap/css/bootstrap.min.css">
+	<link href="./css/style.css" rel="stylesheet">
+</head>
+
+<body>
+	<div id="app_name" class="hidden">APP--1</div>
+	<div style="text-align: center; bottom: 20px; top: 10px; position: relative;"><img alt="img" src="FinalLogo1.png" border="0" style="width: 136px; height: 136px; border: 1px none; position: relative;"></div>
+  	<div style="text-align: center; position: relative;"><font size="20" face="Trebuchet MS, sans-serif">
+  		<b style="font-size: 32px;">Comer Saludable</b></font></div><div style="text-align: center; position: relative;"><b style="font-family: &quot;Trebuchet MS&quot;, sans-serif; font-size: 18px;">Una buena salud empieza en tu boca</b>
+  	</div>
+	<div id="circle"></div>
+	<div style="margin-top: 20px">
+		<label>Circle Count: </label>
+		<label id="circle_count"></label>
+	</div>
+	<div id="button-group" style="margin-bottom: 3rem !important"></div>
+	<center>
+	<audio controls="">
+	  <source src="mar.mp3" type="audio/mpeg">
+	  <source src="Serenity.mp3" type="audio/mpeg">
+	  <source src="QuietTime.mp3" type="audio/mpeg">
+	  <source src="DeepMed.mp3" type="audio/mpeg">
+		Your browser does not support the audio element.
+		</source></source></source></source></audio>	
+	</center>
+
+	<div class="modal fade" id="centralModalSm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+	  aria-hidden="true">
+		<div class="modal-dialog modal-sm" role="document">
+		   <div class="modal-content">
+		      <div class="modal-header">
+		        <h4 class="modal-title w-100" id="myModalLabel">Do you save this?</h4>
+		      </div>
+		      <div class="modal-body">
+
+		        <label for="name">Name</label>
+				<input type="text" id="name" class="form-control">
+
+		      </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">return</button>
+		        <button type="button" class="btn btn-primary btn-sm" id="btn_save">Save</button>
+		      </div>
+		    </div>
+		  </div>
+	</div>
+
+
+	<script src="./lib/jquery/jquery.js"></script>
+	<script src="./lib/bootstrap/js/bootstrap.min.js"></script>
+	<script>
+		$(document).ready(function(){
+			const FULL_DASH_ARRAY = 283;
+			const THRESHOLD_1 = 15;
+			const THRESHOLD_2 = 10;
+			const THRESHOLD_3 = 5;
+			const THRESHOLD_4 = 4;
+
+			const COLOR_CODES = {
+			  case_1: {
+			    color: "color_1"             // in countdown.css
+			  },
+			  case_2: {
+			    color: "color_2",			// in countdown.css
+			    threshold: THRESHOLD_1
+			  },
+			  case_3: {
+			    color: "color_3",			// in countdown.css
+			    threshold: THRESHOLD_2
+			  },
+			  case_4: {
+			    color: "color_4",			// in countdown.css
+			    threshold: THRESHOLD_3
+			  },
+			  case_5: {
+			    color: "color_5",			// in countdown.css
+			    threshold: THRESHOLD_4
+			  }
+			};
+			let isFirstPart = false;
+			let isSecondPart = false;
+			const TIME_LIMIT_1 = 20;
+			const TIME_LIMIT_2 = 10;
+			let timePassed_1 = 0, timePassed_2 = 10;
+			let timeLeft = TIME_LIMIT_1;
+			let timerInterval_1, timerInterval_2 = null;
+			let remainingPathColor = COLOR_CODES.case_1.color;
+			let startHour = null;
+			let exitHour = null;
+			let circleCount = 0;
+
+
+			$("#circle").get(0).innerHTML = `
+			<div class="base-timer" style="margin-top: 20px; margin-bottom: 5em; height: 200px; width: 200px;">
+			  <svg class="base-timer__svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+			    <g class="base-timer__circle">
+			      <circle class="base-timer__path-elapsed" cx="50" cy="50" r="45"></circle>
+			      <path
+			        id="base-timer-path-remaining"
+			        stroke-dasharray="283"
+			        class="base-timer__path-remaining ${remainingPathColor}"
+			        d="
+			          M 50, 50
+			          m -45, 0
+			          a 45,45 0 1,0 90,0
+			          a 45,45 0 1,0 -90,0
+			        "
+			      ></path>
+			    </g>
+			  </svg>
+			  <span id="base-timer-label" class="base-timer__label">${
+			    timeLeft
+			  }</span>
+			</div>
+			`;
+
+			$("#button-group").get(0).innerHTML = `
+			<button class="btn btn-info" role="button" id="btn_start">Start</button>
+			<button class="btn btn-danger" role="button" id="btn_exit">Exit</button>
+			`;
+
+			$("#btn_save").click(function(){
+				let name = $("#name").val();
+				let circleInfo;
+				let date = new Date();
+				let distance = exitHour - startHour
+				let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+			    let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+			    let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+				let info = {
+					"active": false,
+					"name": name,
+					"duration": hours + "h " + minutes,
+					"starttime": startHour.getHours()+"h"+startHour.getMinutes(),
+					"endtime": exitHour.getHours()+"h"+exitHour.getMinutes(),
+					"date": ("0" + date.getDate()).slice(-2)+"/"+("0" + (date.getMonth() + 1)).slice(-2)+"<br>"+date.getFullYear(),
+					"circlecount": circleCount					
+				};
+
+				try {
+ 					circleInfo = JSON.parse(window.localStorage.getItem("circleinfo")) || [];
+				}
+				catch (err) {
+					circleInfo = [];
+				}
+				circleInfo.push(info);
+				window.localStorage.setItem("circleinfo", JSON.stringify(circleInfo));
+
+				location.href = "./circleinfo.html";
+			});
+			$("#btn_exit").click(function(){
+				onTimesUp();
+				exitHour = new Date();
+				$("#lbl_count").html(circleCount);
+				$("#centralModalSm").modal("show");
+			});
+			$("#btn_start").click(function(){
+
+				startHour = new Date();
+				
+				if($(this).html() === `Start`){
+					isFirstPart = true;
+					circleCount = 1;
+					$("#circle_count").html(circleCount);
+					startTimer();
+					$(this).removeClass("btn-info");
+					$(this).addClass("btn-primary");
+					$(this).html(`Pause`);
+				}
+
+				else if($(this).html() === `Pause`){
+					onTimesUp();
+					$(this).removeClass("btn-primary");
+					$(this).addClass("btn-warning");
+					$(this).html(`Resume`);
+				}
+
+				else if($(this).html() === `Resume`){
+					startTimer();
+					$(this).removeClass("btn-warning");
+					$(this).addClass("btn-primary");
+					$(this).html(`Pause`);
+				}
+
+			});
+
+			function onTimesUp() {
+				if(isFirstPart === true) clearInterval(timerInterval_1);
+				else if (isSecondPart === true) clearInterval(timerInterval_2);
+			}
+
+			function startTimer() {
+				if(isFirstPart === true) startTimer1();
+				else if (isSecondPart === true) startTimer2();
+			}
+
+			// it's for part_1(20~0) set interval to 750(0.75s)
+			function startTimer1() {
+			  timerInterval_1 = setInterval(() => {
+			    timePassed_1 = timePassed_1 += 1;
+			    timeLeft = TIME_LIMIT_1 - timePassed_1;
+			    $("#base-timer-label").html(timeLeft);
+			    setCircleDasharray();
+			    setRemainingPathColor(timeLeft);
+
+			    if (timeLeft === 0) {
+			      // onTimesUp();
+			      
+			      // timeLeft = TIME_LIMIT_1;
+			      timePassed_1 = -1;
+			      isFirstPart = false;
+			      isSecondPart = true;
+			      clearInterval(timerInterval_1);
+			      startTimer2();
+			    }
+			  }, 750);
+			}
+			// it's for part_2(0~10) set interval to 1000(1s)
+			function startTimer2() {
+			  timerInterval_2 = setInterval(() => {
+			    timePassed_2 = timePassed_2 -= 1;
+			    timeLeft = TIME_LIMIT_2 - timePassed_2;
+			    $("#base-timer-label").html(timeLeft);
+			    setCircleDasharray();
+			    setRemainingPathColor(timeLeft);
+
+			    if (timeLeft === TIME_LIMIT_2) {
+			      // onTimesUp();
+			      circleCount += 1;
+			      $("#circle_count").html(circleCount);
+			      timeLeft = TIME_LIMIT_1;
+			      timePassed_2 = TIME_LIMIT_2;
+			      isFirstPart = true;
+			      isSecondPart = false;
+			      clearInterval(timerInterval_2);
+			      startTimer1();
+			    }
+			  }, 1000);
+			}
+
+			// change color according to progress of timer for part-1(20~0) and part-2(0~10)
+			function setRemainingPathColor(timeLeft) {
+			  const { case_1, case_2, case_3, case_4, case_5 } = COLOR_CODES;
+
+			  if(isFirstPart == true) {
+			  	if (timeLeft <= case_4.threshold) {
+				    $("#base-timer-path-remaining").removeClass(case_3.color);
+				    $("#base-timer-path-remaining").addClass(case_4.color);
+				}
+				else if (timeLeft <= case_3.threshold) {
+					$("#base-timer-path-remaining").removeClass(case_2.color);
+				    $("#base-timer-path-remaining").addClass(case_3.color);
+				}
+				else if (timeLeft <= case_2.threshold) {
+					$("#base-timer-path-remaining").removeClass(case_1.color);
+				    $("#base-timer-path-remaining").addClass(case_2.color);
+				}
+			  }
+
+			  if(isSecondPart == true) {
+			  	if (timeLeft === TIME_LIMIT_2) {
+					$("#base-timer-path-remaining").removeClass(case_5.color);
+				    $("#base-timer-path-remaining").addClass(case_1.color);
+				}
+				else if (timeLeft >= case_5.threshold) {
+				    $("#base-timer-path-remaining").removeClass(case_4.color);
+				    $("#base-timer-path-remaining").addClass(case_5.color);
+				}
+			  }
+			}
+
+			// called from setCircleDasharray()
+			function calculateTimeFraction() {
+				if(timeLeft === 0) return 0;
+				if(isFirstPart === true) {
+				  const rawTimeFraction = timeLeft / TIME_LIMIT_1;
+				  return rawTimeFraction - (1 / TIME_LIMIT_1) * (1 - rawTimeFraction);
+				}
+				else if(isSecondPart === true) {
+				  const rawTimeFraction = timeLeft / TIME_LIMIT_2;
+				  return rawTimeFraction - (1 / TIME_LIMIT_2) * (1 - rawTimeFraction);
+				}
+
+			}
+
+			// set length of stroke according to countdown timer
+			// by change attribute "stroke-dasharray".
+			function setCircleDasharray() {
+			  const circleDasharray = `${(
+			    calculateTimeFraction() * FULL_DASH_ARRAY
+			  ).toFixed(0)} 283`;
+			  $("#base-timer-path-remaining").get(0).setAttribute("stroke-dasharray", circleDasharray);
+			}
+
+		});
+	</script>
+
+
+</body>
+</html>

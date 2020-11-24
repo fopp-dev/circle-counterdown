@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+	<!-- <link rel="stylesheet" href="./css/countdown.css"> -->
+	<link rel="stylesheet" href="./lib/bootstrap/css/bootstrap.min.css">
+	<link href="./lib/font-awesome/css/font-awesome.css" rel="stylesheet">
+	<link href="./css/style.css" rel="stylesheet">
+		<!-- DataTables CSS -->
+	<link href="./css/datatables2.min.css" rel="stylesheet">
+	<!-- DataTables Select CSS -->
+	<link href="./css/datatables-select2.min.css" rel="stylesheet">
+	<script src="./lib/jquery/jquery.js"></script>
+	<link href="https://cdn.datatables.net/responsive/2.1.1/css/responsive.bootstrap.min.css" rel="stylesheet" type="text/css" />
+	<style>
+		table#circleInfoTable th, table#circleInfoTable td{
+			text-align: center;
+		}
+	</style>
+
+</head>
+
+<body>
+	<center><h2 style="width: 200px; margin-left: auto; margin-right: auto">Info</h2></center>
+	<hr>
+	<table id="circleInfoTable" class="table dt-responsive table-hover table-bordered" cellspacing="0" width="100%">
+	  <thead>
+	    <tr>
+	      <th class="th-sm">Select
+	      </th>
+	      <th class="th-sm">Date
+	      </th>
+	      <th class="th-sm">StartTime
+	      </th>
+	      <th class="th-sm">EndTime
+	      </th>
+	      <th class="th-sm">Cycles
+	      </th>
+	      <th class="th-sm">Duration
+	      </th>
+		  <th class="th-sm">Name
+	      </th>
+	    </tr>
+	  </thead>
+	  <tfoot>
+	    <tr>
+	      <th>Select
+	      </th>
+	      <th>Date
+	      </th>
+	      <th>StartTime
+	      </th>
+	      <th>EndTime
+	      </th>
+	      <th>Cycles
+	      </th>
+	      <th>Duration
+	      </th>
+	      <th>Name
+	      </th>
+
+
+	    </tr>
+	  </tfoot>
+	</table>
+	<hr>
+	<center><button type="button" class="btn btn-primary btn-sm" id="clean_all"  style="width: 100px; align-items: center;">Delete All</button>
+	<button type="button" class="btn btn-primary btn-sm" id="clean_sel"  style="width: 100px; align-items: center;">Delete Selected</button></center>
+
+	<script src="./lib/bootstrap/js/bootstrap.min.js"></script>
+	<script src="./lib/datatables2.min.js" type="text/javascript"></script>	
+	<script src="./lib/datatables-select2.min.js" type="text/javascript"></script>
+	<script src="https://cdn.datatables.net/responsive/2.1.1/js/dataTables.responsive.min.js" type="text/javascript"></script>
+    <script src="https://cdn.datatables.net/responsive/2.1.1/js/responsive.bootstrap.min.js" type="text/javascript"></script>-->
+
+	<script>
+		// let editer;
+		$(document).ready(function(){
+			let circleinfo = JSON.parse(localStorage.getItem('circleinfo'));
+			let arr = [];
+		    let otable = $('#circleInfoTable').DataTable( {
+		        dom: "Bfrtip",
+		        data: $.map( circleinfo, function (value, key) {
+		            return value;
+		        } ),
+		        "fnDrawCallback": function(oSettings) {
+			        if ($('#circleInfoTable tr').length < 10) {
+			            $('.dataTables_paginate').hide();
+			        }
+			    },
+		        columns: [
+			        {
+		                data:   "active",
+		                render: function ( data, type, row ) {
+		                    if ( type === 'display' ) {
+		                        return '<input type="checkbox" class="chkNumber">';
+		                    }
+		                    return data;
+		                },
+		                className: "dt-body-center"
+		            },  	
+		            { data: "date" },
+		            { data: "starttime" },
+		            { data: "endtime" },   
+		            { data: "circlecount" },
+		            { data: "duration" },
+		            { data: "name" }
+		            
+		            
+		        ],
+	    		select: false,
+	    		// pagination: false
+	    		// "pageLength": 5
+	    		
+		    } );
+
+		 //    $('#circleInfoTable').dataTable({
+			    // "fnDrawCallback": function(oSettings) {
+			    //     if ($('#circleInfoTable tr').length < 5) {
+			    //         $('.dataTables_paginate').hide();
+			    //     }
+			    // }
+			// });​
+
+		    $("#clean_all").click(function(){
+		    	window.localStorage.clear();
+		    	$('#circleInfoTable').DataTable().clear().draw();
+		    });
+		    $("#clean_sel").click(function(){
+
+		  //   	$('.chkNumber').each(function (index) {
+		  //   		if($(this).is(":checked") == true){
+		  //   			console.log(index);
+				// 	    let row = $(this).closest('tr');
+				// 	    let nRow = row[index];
+	   //     				$('#circleInfoTable').dataTable().fnDeleteRow(nRow);
+	   //     				var data = JSON.parse(localStorage.getItem("circleinfo"));
+	   //     				data.splice(index, 1);
+	   //     				localStorage.setItem("circleinfo", JSON.stringify(data));	       				
+		  //   		}		    		
+
+				// });
+				var childrens = $(".chkNumber");
+				for(var i = childrens.length - 1; i >= 0; i--){
+					if($(childrens[i]).is(":checked") == true){
+		    			console.log(i);
+					    let row = $(childrens[i]).closest('tr');
+					    console.log(row);
+					    let nRow = row[i];
+	       				$('#circleInfoTable').dataTable().fnDeleteRow(i);
+	       				var data = JSON.parse(localStorage.getItem("circleinfo"));
+	       				data.splice(i, 1);
+	       				localStorage.setItem("circleinfo", JSON.stringify(data));
+	       				// $('#circleInfoTable').DataTable().draw();
+	       				// break;	       				
+		    		}	
+				}
+		    });
+
+		    $(".chkNumber").click(function(e){
+		    	e.stopPropagation();
+		    });
+
+		} );
+	</script>
+
+
+</body>
+</html>
